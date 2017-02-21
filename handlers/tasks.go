@@ -5,30 +5,47 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/hfm/sample-echo-vue/models"
+
 	"github.com/labstack/echo"
 )
 
 type H map[string]interface{}
 
+// GetTasks endpoint
 func GetTasks(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		return c.JSON(http.StatusOK, "tasks")
+		return c.JSON(http.StatusOK, models.GetTasks(db))
 	}
 }
 
-func PutTasks(db *sql.DB) echo.HandlerFunc {
+// PutTask endpoint
+func PutTask(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		return c.JSON(http.StatusOK, H{
-			"created": 123,
-		})
+		var task models.Task
+		c.Bind(&task)
+		id, err := models.PutTask(db, task.Name)
+		if err == nil {
+			return c.JSON(http.StatusOK, H{
+				"created": id,
+			})
+		} else {
+			return err
+		}
 	}
 }
 
-func DeleteTasks(db *sql.DB) echo.HandlerFunc {
+// DeleteTask endpoint
+func DeleteTask(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id, _ := strconv.Atoi(c.Param("id"))
-		return c.JSON(http.StatusOK, H{
-			"deleted": id,
-		})
+		_, err := models.DeleteTask(db, id)
+		if err == nil {
+			return c.JSON(http.StatusOK, H{
+				"deleted": id,
+			})
+		} else {
+			return err
+		}
 	}
 }
